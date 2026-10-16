@@ -4,8 +4,10 @@ import com.family.medicinecabinet.common.Result;
 import com.family.medicinecabinet.entity.ShoppingListItem;
 import com.family.medicinecabinet.entity.enums.ShoppingReason;
 import com.family.medicinecabinet.service.ShoppingListService;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -13,8 +15,11 @@ import java.util.List;
 
 /**
  * 购物清单控制器
+ *
+ * <p>类级 {@link Validated} 用于开启 {@code @RequestParam} 上的约束校验。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/shopping-list")
 public class ShoppingListController {
@@ -50,7 +55,7 @@ public class ShoppingListController {
     @PostMapping("/{id}/purchased")
     public Result<?> markPurchased(
             @PathVariable String id,
-            @RequestParam BigDecimal quantity
+            @RequestParam @Positive(message = "购买数量必须大于0") BigDecimal quantity
     ) {
         shoppingListService.markAsPurchased(id, quantity);
         return Result.success();

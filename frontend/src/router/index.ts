@@ -26,6 +26,12 @@ const router = createRouter({
       path: '/categories',
       name: 'CategoryManagement',
       component: () => import('@/views/CategoryManagement.vue')
+    },
+    {
+      // 兜底：未匹配的路径统一进 404 页，避免整页空白（必须放在最后）
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('@/views/NotFound.vue')
     }
   ]
 })

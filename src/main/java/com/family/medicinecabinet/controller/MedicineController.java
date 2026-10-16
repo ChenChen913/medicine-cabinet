@@ -10,8 +10,11 @@ import com.family.medicinecabinet.exception.MedicineNotFoundException;
 import com.family.medicinecabinet.mapper.MedicineMapper;
 import com.family.medicinecabinet.service.InventoryService;
 import com.family.medicinecabinet.service.dto.ConsumeResult;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -19,8 +22,12 @@ import java.time.LocalDate;
 
 /**
  * 药品管理控制器
+ *
+ * <p>类级 {@link Validated} 用于开启 {@code @RequestParam} 等非请求体参数上的约束校验；
+ * 请求体参数使用 {@link Valid} 触发实体自身声明的约束。</p>
  */
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/medicines")
 public class MedicineController {
@@ -71,7 +78,7 @@ public class MedicineController {
      * 避免把 SQL/驱动原始报错透传给前端。</p>
      */
     @PostMapping
-    public Result<Medicine> create(@RequestBody Medicine medicine) {
+    public Result<Medicine> create(@Valid @RequestBody Medicine medicine) {
         // 设置默认值，防止空指针异常
         if (medicine.getTotalQuantity() == null) {
             medicine.setTotalQuantity(BigDecimal.ZERO);
@@ -104,7 +111,7 @@ public class MedicineController {
      * 一旦补默认值，就等于用默认值覆盖用户没提交的字段（已过期/低库存状态与排序分数被重置）。</p>
      */
     @PutMapping("/{id}")
-    public Result<Medicine> update(@PathVariable String id, @RequestBody Medicine medicine) {
+    public Result<Medicine> update(@PathVariable String id, @Valid @RequestBody Medicine medicine) {
         medicine.setId(id);
         int affectedRows = medicineMapper.updateById(medicine);
         if (affectedRows == 0) {
@@ -131,7 +138,7 @@ public class MedicineController {
     @PostMapping("/{id}/consume")
     public Result<ConsumeResult> consume(
             @PathVariable String id,
-            @RequestParam BigDecimal amount,
+            @RequestParam @Positive(message = "消耗量必须大于0") BigDecimal amount,
             @RequestParam String userName,
             @RequestParam(required = false) String symptom
     ) {
@@ -145,7 +152,7 @@ public class MedicineController {
     @PostMapping("/{id}/restock")
     public Result<?> restock(
             @PathVariable String id,
-            @RequestParam BigDecimal amount
+            @RequestParam @Positive(message = "补货数量必须大于0") BigDecimal amount
     ) {
         inventoryService.restockMedicine(id, amount);
         return Result.success();

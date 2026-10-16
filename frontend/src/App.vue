@@ -40,8 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import {
   DashboardOutlined,
@@ -50,9 +50,23 @@ import {
   AppstoreOutlined
 } from '@ant-design/icons-vue'
 
+const route = useRoute()
 const router = useRouter()
 const collapsed = ref(false)
-const selectedKeys = ref(['/dashboard'])
+const selectedKeys = ref<string[]>([])
+
+const MENU_KEYS = ['/dashboard', '/medicines', '/shopping', '/categories']
+
+// 高亮跟随路由：刷新、前进后退、直接访问子路径时都能高亮到正确菜单；
+// 未匹配任何菜单的路径（如 404 页）不高亮。
+watch(
+  () => route.path,
+  (path) => {
+    const matched = MENU_KEYS.find(key => path === key || path.startsWith(`${key}/`))
+    selectedKeys.value = matched ? [matched] : []
+  },
+  { immediate: true }
+)
 
 const handleMenuClick = ({ key }: { key: string }) => {
   router.push(key)

@@ -3,12 +3,17 @@ package com.family.medicinecabinet.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.family.medicinecabinet.entity.enums.ShoppingReason;
 import com.family.medicinecabinet.entity.enums.ShoppingStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 /**
  * 购物清单项实体类
+ *
+ * <p>字段约束注解与 {@code schema.sql} 中 shopping_list 表的 NOT NULL 声明对应。</p>
  */
 @Data
 @TableName("shopping_list")
@@ -23,6 +28,8 @@ public class ShoppingListItem {
     /**
      * 药品ID
      */
+    @NotBlank(message = "药品ID不能为空")
+    @Size(max = 36, message = "药品ID长度不能超过36")
     private String medicineId;
 
     /**
@@ -34,6 +41,7 @@ public class ShoppingListItem {
     /**
      * 添加原因
      */
+    @NotNull(message = "添加原因不能为空")
     private ShoppingReason reason;
     
     /**

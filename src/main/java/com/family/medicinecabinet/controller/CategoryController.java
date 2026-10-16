@@ -4,6 +4,7 @@ import com.family.medicinecabinet.common.Result;
 import com.family.medicinecabinet.entity.Category;
 import com.family.medicinecabinet.entity.Medicine;
 import com.family.medicinecabinet.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class CategoryController {
      * 创建类别
      */
     @PostMapping
-    public Result<Category> create(@RequestBody Category category) {
+    public Result<Category> create(@Valid @RequestBody Category category) {
         Category created = categoryService.createCategory(category);
         return Result.success(created);
     }

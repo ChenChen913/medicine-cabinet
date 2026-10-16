@@ -23,6 +23,9 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'dosageForm'">
+            {{ getDosageFormText(record.dosageForm) }}
+          </template>
           <template v-if="column.key === 'status'">
             <a-tag :color="getStatusColor(record.status)">
               {{ getStatusText(record.status) }}
@@ -130,6 +133,7 @@ import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import { medicineApi } from '@/api/medicine'
 import { DosageForm, type Medicine } from '@/types'
+import { getDosageFormText } from '@/utils/dict'
 
 const loading = ref(false)
 const medicines = ref<Medicine[]>([])

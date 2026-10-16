@@ -5,18 +5,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "ant-design-vue": "^4.1.0",
     "axios": "^1.6.2",
-    "dayjs": "^1.11.10",
-    "echarts": "^5.4.3",
-    "pinia": "^2.1.7",
     "vue": "^3.4.0",
-    "vue-echarts": "^6.6.8",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
