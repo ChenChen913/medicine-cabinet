@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -39,4 +40,18 @@ public interface MedicineMapper extends BaseMapper<Medicine> {
      */
     @Select("SELECT * FROM medicines WHERE total_quantity < threshold AND status != 'EXPIRED'")
     List<Medicine> findLowStock();
+
+    /**
+     * 原子扣减库存（SQL 见 mapper/MedicineMapper.xml）
+     *
+     * @return 受影响行数：0 表示库存不足（或药品不存在），调用方据此抛 InsufficientStockException
+     */
+    int deductStock(@Param("id") String id, @Param("amount") BigDecimal amount);
+
+    /**
+     * 原子增加库存（SQL 见 mapper/MedicineMapper.xml）
+     *
+     * @return 受影响行数：0 表示药品不存在
+     */
+    int addStock(@Param("id") String id, @Param("amount") BigDecimal amount);
 }

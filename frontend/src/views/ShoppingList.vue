@@ -9,7 +9,7 @@
         <template #renderItem="{ item }">
           <a-list-item>
             <template #actions>
-              <a-button type="primary" size="small" @click="markPurchased(item.id)">
+              <a-button type="primary" size="small" @click="showPurchaseModal(item)">
                 标记已买
               </a-button>
               <a-popconfirm title="确定删除吗？" @confirm="handleDelete(item.id)">
@@ -33,17 +33,43 @@
         </template>
       </a-list>
     </a-card>
+
+    <!-- 标记已买弹窗：填写实际购买数量 -->
+    <a-modal
+      v-model:open="purchaseModalVisible"
+      title="标记已买"
+      @ok="handleMarkPurchased"
+    >
+      <a-form :label-col="{ span: 6 }">
+        <a-form-item label="药品名称">
+          {{ currentItem?.medicineName }}
+        </a-form-item>
+        <a-form-item label="购买数量" required>
+          <a-input-number
+            v-model:value="purchaseForm.quantity"
+            :min="0.01"
+            style="width: 100%"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { shoppingApi } from '@/api/shopping'
 import type { ShoppingListItem } from '@/types'
 
 const loading = ref(false)
 const items = ref<ShoppingListItem[]>([])
+
+const purchaseModalVisible = ref(false)
+const currentItem = ref<ShoppingListItem | null>(null)
+const purchaseForm = reactive({
+  quantity: 1
+})
 
 const loadData = async () => {
   loading.value = true
@@ -74,10 +100,19 @@ const getReasonText = (reason: string) => {
   return texts[reason] || reason
 }
 
-const markPurchased = async (id: string) => {
+const showPurchaseModal = (item: ShoppingListItem) => {
+  currentItem.value = item
+  purchaseForm.quantity = 1
+  purchaseModalVisible.value = true
+}
+
+// 后端 quantity 为必填参数（需 > 0），必须随请求传入
+const handleMarkPurchased = async () => {
+  if (!currentItem.value?.id) return
   try {
-    await shoppingApi.markPurchased(id)
+    await shoppingApi.markPurchased(currentItem.value.id, purchaseForm.quantity)
     message.success('标记成功')
+    purchaseModalVisible.value = false
     loadData()
   } catch (error) {
     message.error('操作失败')

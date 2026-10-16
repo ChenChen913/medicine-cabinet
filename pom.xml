@@ -44,6 +44,13 @@
             <version>${mybatis-plus.version}</version>
         </dependency>
 
+        <!-- 分页插件：MyBatis-Plus 3.5.9 起 PaginationInnerInterceptor 拆分至该模块 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
         <!-- MySQL Driver -->
         <dependency>
             <groupId>com.mysql</groupId>

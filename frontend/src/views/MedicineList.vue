@@ -7,7 +7,7 @@
             v-model:value="searchName"
             placeholder="搜索药品名称"
             style="width: 200px"
-            @search="loadData"
+            @search="handleSearch"
           />
           <a-button type="primary" @click="showAddModal">
             <PlusOutlined /> 添加药品
@@ -64,11 +64,13 @@
         </a-form-item>
         <a-form-item label="剂型" required>
           <a-select v-model:value="formData.dosageForm">
-            <a-select-option value="TABLET">片剂</a-select-option>
-            <a-select-option value="CAPSULE">胶囊</a-select-option>
-            <a-select-option value="GRANULE">颗粒</a-select-option>
-            <a-select-option value="LIQUID">液体</a-select-option>
-            <a-select-option value="EXTERNAL">外用</a-select-option>
+            <a-select-option :value="DosageForm.TABLET">片剂</a-select-option>
+            <a-select-option :value="DosageForm.CAPSULE">胶囊</a-select-option>
+            <a-select-option :value="DosageForm.GRANULE">颗粒</a-select-option>
+            <a-select-option :value="DosageForm.LIQUID">液体</a-select-option>
+            <a-select-option :value="DosageForm.EXTERNAL">外用</a-select-option>
+            <a-select-option :value="DosageForm.INJECTION">注射剂</a-select-option>
+            <a-select-option :value="DosageForm.OTHER">其他</a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item label="库存数量" required>
@@ -127,7 +129,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import { medicineApi } from '@/api/medicine'
-import type { Medicine } from '@/types'
+import { DosageForm, type Medicine } from '@/types'
 
 const loading = ref(false)
 const medicines = ref<Medicine[]>([])
@@ -177,6 +179,12 @@ const loadData = async () => {
   }
 }
 
+// 搜索时重置到第一页再查询
+const handleSearch = () => {
+  pagination.current = 1
+  loadData()
+}
+
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     NORMAL: 'green',
@@ -199,15 +207,20 @@ const getStatusText = (status: string) => {
 
 const showAddModal = () => {
   modalTitle.value = '添加药品'
+  // 重置表单，避免残留上一次编辑的字段（尤其 id 会导致新增误走更新分支）
+  const staleKeys = Object.keys(formData) as Array<keyof Medicine>
+  staleKeys.forEach((key) => {
+    delete formData[key]
+  })
   Object.assign(formData, {
     name: '',
-    dosageForm: 'TABLET',
+    dosageForm: DosageForm.TABLET,
     totalQuantity: 0,
     unit: '粒',
     threshold: 10,
     expiryDate: '',
-    usageFrequencyScore: 0,
-    status: 'NORMAL'
+    symptomsTreated: '',
+    dosageInstruction: ''
   })
   modalVisible.value = true
 }
@@ -218,13 +231,46 @@ const showEditModal = (record: Medicine) => {
   modalVisible.value = true
 }
 
+// 构造白名单 payload：仅提交表单可编辑字段，
+// status / usageFrequencyScore / createdAt / updatedAt 等后端字段一律不回传，避免覆盖后端值
+const buildPayload = (): Partial<Medicine> => {
+  const payload: Partial<Medicine> = {
+    name: formData.name,
+    dosageForm: formData.dosageForm,
+    totalQuantity: formData.totalQuantity,
+    unit: formData.unit,
+    threshold: formData.threshold,
+    expiryDate: formData.expiryDate,
+    symptomsTreated: formData.symptomsTreated,
+    dosageInstruction: formData.dosageInstruction
+  }
+  // 剔除空字符串字段（如未填写的 expiryDate: ''），避免后端 DATE NOT NULL 列踩坑
+  const keys = Object.keys(payload) as Array<keyof Medicine>
+  keys.forEach((key) => {
+    const value = payload[key]
+    if (value === '' || value === null || value === undefined) {
+      delete payload[key]
+    }
+  })
+  return payload
+}
+
 const handleSubmit = async () => {
+  if (!formData.name) {
+    message.warning('请填写药品名称')
+    return
+  }
+  if (!formData.expiryDate) {
+    message.warning('请选择过期日期')
+    return
+  }
   try {
+    const payload = buildPayload()
     if (formData.id) {
-      await medicineApi.update(formData.id, formData as Medicine)
+      await medicineApi.update(formData.id, payload as Medicine)
       message.success('更新成功')
     } else {
-      await medicineApi.create(formData as Medicine)
+      await medicineApi.create(payload as Medicine)
       message.success('添加成功')
     }
     modalVisible.value = false

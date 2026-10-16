@@ -1,14 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.family.medicinecabinet.mapper.ShoppingListMapper">
-    
-    <!-- 根据药品ID和原因查询清单项 -->
-    <select id="findByMedicineAndReason" resultType="com.family.medicinecabinet.entity.ShoppingListItem">
+
+    <!-- 按状态查询清单项：LEFT JOIN medicines 回填 medicine_name（结果映射到 ShoppingListItem.medicineName） -->
+    <select id="findPendingByStatus" resultType="com.family.medicinecabinet.entity.ShoppingListItem">
+        SELECT sl.id,
+               sl.medicine_id,
+               sl.reason,
+               sl.custom_note,
+               sl.status,
+               sl.added_at,
+               sl.purchased_at,
+               m.name AS medicine_name
+        FROM shopping_list sl
+        LEFT JOIN medicines m ON sl.medicine_id = m.id
+        WHERE sl.status = #{status}
+        ORDER BY sl.added_at DESC
+    </select>
+
+    <!-- 根据药品ID和原因查询清单项（状态由参数传入，不硬编码） -->
+    <select id="findByMedicineAndReasonAndStatus" resultType="com.family.medicinecabinet.entity.ShoppingListItem">
         SELECT * FROM shopping_list
         WHERE medicine_id = #{medicineId}
         AND reason = #{reason}
-        AND status = 'PENDING'
+        AND status = #{status}
         LIMIT 1
     </select>
-    
+
 </mapper>

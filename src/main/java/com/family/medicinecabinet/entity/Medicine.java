@@ -93,12 +93,12 @@ public class Medicine {
      * 使用频率分数
      */
     @TableField("usage_frequency_score")
-    private Integer usageFrequencyScore = 0;
-    
+    private Integer usageFrequencyScore;
+
     /**
      * 状态
      */
-    private MedicineStatus status = MedicineStatus.NORMAL;
+    private MedicineStatus status;
     
     /**
      * 创建时间

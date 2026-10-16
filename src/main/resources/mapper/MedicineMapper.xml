@@ -9,5 +9,17 @@
         AND status != 'EXPIRED'
         ORDER BY expiry_date ASC
     </select>
-    
+
+    <!-- 原子扣减库存：库存不足时 WHERE 不成立，返回受影响行数 0 -->
+    <update id="deductStock">
+        UPDATE medicines SET total_quantity = total_quantity - #{amount}
+        WHERE id = #{id} AND total_quantity &gt;= #{amount}
+    </update>
+
+    <!-- 原子增加库存：药品不存在时返回受影响行数 0 -->
+    <update id="addStock">
+        UPDATE medicines SET total_quantity = total_quantity + #{amount}
+        WHERE id = #{id}
+    </update>
+
 </mapper>

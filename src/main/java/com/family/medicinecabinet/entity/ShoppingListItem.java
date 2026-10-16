@@ -24,7 +24,13 @@ public class ShoppingListItem {
      * 药品ID
      */
     private String medicineId;
-    
+
+    /**
+     * 药品名称（非数据库列，由查询语句 LEFT JOIN medicines 回填）
+     */
+    @TableField(exist = false)
+    private String medicineName;
+
     /**
      * 添加原因
      */
