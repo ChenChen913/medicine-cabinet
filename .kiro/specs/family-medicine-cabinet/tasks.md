@@ -331,3 +331,56 @@
 
 
   - 确保所有测试通过，如有问题请询问用户
+
+---
+
+## 实现偏差记录（2026-10-16 代码核查追加）
+
+> 本节由文档治理任务 4C 追加：列出声称 `[x]` 完成、但经代码核查**不存在或与实现不符**的产物。
+> **原有勾选状态一律未改动**，本节仅作记录，供后续任务修正。
+
+### 一、后端：不存在的控制器与服务
+
+| 任务 | 声称产物 | 核查结果（依据） |
+|---|---|---|
+| 10 | `UsageLogController`（查询用药记录接口） | ❌ 不存在——`controller/` 下实际仅 4 个文件：`MedicineController`、`CategoryController`、`ShoppingListController`、`HomeController` |
+| 10、11 | `StatisticsController`、`StatisticsService`（`getTopMedicines` / `getUsageTrend` / `getDashboardStatistics`） | ❌ 不存在——`src/` 下检索 `*statistic*` 为 0 个文件 |
+
+### 二、未实现的属性测试（jqwik）
+
+实际存在的属性测试仅 7 个：Property 1/2/3（`MedicinePropertyTest`）、Property 4（`InventoryPropertyTest`）、Property 7/8/9（`SortingPropertyTest`）。
+
+| 任务 | 声称属性 | 核查结果 |
+|---|---|---|
+| 5.2 / 5.3 | 属性 5（低库存预警触发）、属性 6（耗尽自动补货） | ❌ 无对应测试 |
+| 6.1 / 6.2 | 属性 10（过期自动标记）、属性 11（过期自动加入购物清单） | ❌ 无对应测试 |
+| 7.1 | 属性 15（购物清单标记已买更新频率） | ❌ 无对应测试 |
+| 8.1 / 8.2 / 8.3 | 属性 16（类别名称唯一性）、17（药品多类别关联）、18（类别筛选正确性） | ❌ 无对应测试 |
+| 9.1 | 属性 20（数据操作失败保持完整性） | ❌ 无对应测试 |
+| 10.1 / 10.2 | 属性 14（数据更新一致性）、19（序列化 round-trip） | ❌ 无对应测试 |
+| 14.1 / 15.1 | 属性 12（卡片渲染正确性）、13（详情页渲染完整性） | ❌ 无对应测试（前端亦无测试工程） |
+
+### 三、前端：未落地的技术选型与组件
+
+| 任务 | 声称产物 | 核查结果（依据） |
+|---|---|---|
+| 13 | Ant Design **Pro**、**Pinia** 状态管理 | ❌ 未使用——`frontend/package.json` 无 pro-components / pinia 依赖，实际为 ant-design-vue 4，无状态管理库 |
+| 14 / 15 / 16 / 17 | ProTable / ProDescriptions / ProList / ProCard | ❌ 未使用——`frontend/src` 中无这些组件 |
+| 15 | `MedicineDetail.vue`（药品详情抽屉） | ❌ 不存在——`frontend/src/views/` 无该文件 |
+| 17 | 图表库（ECharts / Chart.js）、排行榜柱状图、趋势折线图 | ❌ 未实现——`Dashboard.vue` 第 27 行显示"图表功能待实现" |
+| 18 | `ConsumeMedicine.vue` 表单组件 | ❌ 不存在——记录用药以 `MedicineList.vue` 内弹窗实现 |
+| 19 | 类别**编辑 / 删除**、药品分配到类别的 UI | ❌ 未实现——`CategoryManagement.vue` 仅"添加类别"+"查看药品" |
+| 20 | 存放位置：自动补全、详情页展示、筛选、分组 | ❌ 未实现——`storageLocation` 仅在前端 `types/index.ts` 中有字段声明 |
+| 22 | 数据导出（CSV / JSON、时间范围选择） | ❌ 未实现——`frontend/src` 无导出相关代码 |
+
+### 四、部署
+
+| 任务 | 声称产物 | 核查结果（依据） |
+|---|---|---|
+| 23 | `Dockerfile`（后端 Spring Boot） | ❌ 不存在——仓库（2 层深度内）无 Dockerfile；CORS、前端代理、构建脚本、README 已完成 |
+
+### 五、部分实现（其余条目以代码为准）
+
+- 21（UI 优化）：loading 与消息提示已实现；骨架屏 / 响应式 / 自动聚焦等未逐项核实，以 `frontend/src` 实际代码为准。
+
+> 核查方式：文件系统枚举（`find` / `ls`）+ 源码 grep；核查日期 2026-10-16。

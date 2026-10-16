@@ -1,195 +1,68 @@
 # 家庭智慧药箱管理系统 - 前端
 
-## 📋 项目说明
+基于 **Vue 3 + TypeScript + ant-design-vue（非 Pro）+ Vite** 的前端工程，已实现全部页面文件。
 
-本前端项目使用 Vue 3 + TypeScript + Ant Design Vue 开发。
-
-由于会话长度限制，前端采用**文档化实现方案**。完整的实现文档请查看 `FRONTEND_IMPLEMENTATION.md`。
-
-## 🚀 快速开始
-
-### 1. 安装依赖
+## 快速开始
 
 ```bash
-npm install
+npm install          # 首次安装依赖
+npm run dev          # 启动开发服务器 → http://localhost:3000
+npm run build        # 生产构建（vue-tsc 类型检查 + vite build）
+npm run preview      # 预览构建产物
 ```
 
-### 2. 启动开发服务器
+## 技术栈（以 `package.json` 为准）
 
-```bash
-npm run dev
-```
+| 类别 | 依赖 |
+|---|---|
+| 框架 | vue `^3.4.0` |
+| UI | ant-design-vue `^4.1.0`、@ant-design/icons-vue `^7.0.1` |
+| 路由 | vue-router `^4.2.5` |
+| HTTP | axios `^1.6.2` |
+| 构建 | vite `^5.0.0`、typescript `^5.3.0`、vue-tsc `^3.1.8` |
+| 工程化 | unplugin-vue-components（AntDesignVueResolver 按需自动导入组件）、unplugin-auto-import（vue / vue-router API 自动导入） |
 
-访问: http://localhost:3000
+> 说明：本项目**未使用** Pinia、图表库（ECharts 等）或 ant-design-vue 的 Pro 组件（ProTable / ProList 等）——`package.json` 中不存在相应依赖。
 
-### 3. 构建生产版本
-
-```bash
-npm run build
-```
-
-## 📁 项目结构
+## 目录结构（实际现有文件）
 
 ```
 frontend/
-├── public/              # 静态资源
 ├── src/
-│   ├── api/            # API接口封装
-│   ├── assets/         # 资源文件
-│   ├── components/     # 公共组件
-│   ├── router/         # 路由配置
-│   ├── stores/         # Pinia状态管理
-│   ├── types/          # TypeScript类型定义
-│   ├── utils/          # 工具函数
-│   ├── views/          # 页面组件
-│   ├── App.vue         # 主应用组件
-│   ├── main.ts         # 应用入口
-│   └── style.css       # 全局样式
+│   ├── api/            # 接口封装：medicine.ts / shopping.ts / category.ts
+│   ├── router/index.ts # 路由配置（见下表）
+│   ├── types/index.ts  # TS 类型与枚举（大写：DosageForm / MedicineStatus / ShoppingReason / ShoppingStatus）
+│   ├── utils/          # request.ts（Axios 封装）/ dict.ts（枚举中文映射）
+│   ├── views/          # Dashboard.vue / MedicineList.vue / ShoppingList.vue / CategoryManagement.vue / NotFound.vue
+│   ├── App.vue / main.ts / style.css
+│   └── auto-imports.d.ts / vite-env.d.ts
 ├── index.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── FRONTEND_IMPLEMENTATION.md  # 完整实现文档
+├── package.json / tsconfig.json / vite.config.ts
+└── README.md（本文件）
 ```
 
-## 📝 实现状态
+## 页面与路由（`src/router/index.ts`）
 
-### 已创建文件
-- ✅ package.json - 依赖配置
-- ✅ vite.config.ts - Vite配置
-- ✅ tsconfig.json - TypeScript配置
-- ✅ index.html - HTML入口
-- ✅ src/main.ts - 应用入口
+| 路由 | 页面 | 说明 |
+|---|---|---|
+| `/` | — | 重定向到 `/dashboard` |
+| `/dashboard` | Dashboard.vue | 统计卡片（图表功能待实现） |
+| `/medicines` | MedicineList.vue | 列表、增删改、记录用药（弹窗）、补货 |
+| `/shopping` | ShoppingList.vue | 待购买清单、标记已购买、删除 |
+| `/categories` | CategoryManagement.vue | 类别列表、添加类别、查看类别下药品 |
+| `/:pathMatch(.*)*` | NotFound.vue | 404 兜底 |
 
-### 需要创建的文件
-根据 `FRONTEND_IMPLEMENTATION.md` 文档创建以下文件：
+## 开发代理
 
-#### 核心文件
-- [ ] src/App.vue - 主应用组件
-- [ ] src/style.css - 全局样式
-- [ ] src/router/index.ts - 路由配置
+开发环境下 Vite 将 `/api` 请求代理到后端 `http://localhost:8080`（见 `vite.config.ts` 的 `server.proxy`），并监听 `3000` 端口。
 
-#### 类型定义
-- [ ] src/types/index.ts - TypeScript类型定义
+## 实现状态说明
 
-#### 工具函数
-- [ ] src/utils/request.ts - Axios封装
-- [ ] src/utils/format.ts - 格式化工具
+- 页面文件均已实际存在（不存在"待创建文件"清单）；旧版主文档的"文档化实现方案/待创建"描述已作废。
+- 接口与页面的实际实现偏差（如未实现的图表、数据导出、类别编辑等）见 `.kiro/specs/family-medicine-cabinet/tasks.md` 的「实现偏差记录」。
+- 历史前端实现文档已归档：`../docs/archive/FRONTEND_IMPLEMENTATION.md`（内容与现状有出入，仅供追溯）。
 
-#### API接口
-- [ ] src/api/medicine.ts - 药品API
-- [ ] src/api/shopping.ts - 购物清单API
-- [ ] src/api/category.ts - 类别API
+## 相关文档
 
-#### 页面组件
-- [ ] src/views/Dashboard.vue - 数据看板
-- [ ] src/views/MedicineList.vue - 药品列表
-- [ ] src/views/ShoppingList.vue - 购物清单
-- [ ] src/views/CategoryManagement.vue - 类别管理
-
-#### 公共组件
-- [ ] src/components/MedicineCard.vue - 药品卡片
-- [ ] src/components/ConsumeModal.vue - 用药记录弹窗
-
-## 📖 实现指南
-
-### 步骤1: 创建类型定义
-
-参考 `FRONTEND_IMPLEMENTATION.md` 中的 "TypeScript类型定义" 部分，创建 `src/types/index.ts`。
-
-### 步骤2: 创建Axios封装
-
-参考文档中的 "Axios封装" 部分，创建 `src/utils/request.ts`。
-
-### 步骤3: 创建API接口
-
-参考文档中的 "API接口" 部分，创建 `src/api/` 目录下的文件。
-
-### 步骤4: 创建路由配置
-
-参考文档中的 "路由配置" 部分，创建 `src/router/index.ts`。
-
-### 步骤5: 创建主应用组件
-
-参考文档中的 "主应用组件" 部分，创建 `src/App.vue`。
-
-### 步骤6: 创建页面组件
-
-参考文档中的 "药品列表页面" 等部分，创建各个页面组件。
-
-### 步骤7: 创建样式文件
-
-参考文档中的 "样式文件" 部分，创建 `src/style.css`。
-
-## 🔧 配置说明
-
-### 代理配置
-
-开发环境下，Vite会将 `/api` 请求代理到后端服务器 `http://localhost:8080`。
-
-如需修改后端地址，编辑 `vite.config.ts`:
-
-```typescript
-server: {
-  port: 3000,
-  proxy: {
-    '/api': {
-      target: 'http://localhost:8080',  // 修改为你的后端地址
-      changeOrigin: true
-    }
-  }
-}
-```
-
-### 自动导入配置
-
-项目配置了自动导入：
-- Vue API (ref, reactive, computed等)
-- Vue Router API
-- Pinia API
-- Ant Design Vue 组件
-
-无需手动导入即可使用。
-
-## 📚 技术栈
-
-- **框架**: Vue 3.4
-- **语言**: TypeScript 5.3
-- **UI库**: Ant Design Vue 4.1
-- **路由**: Vue Router 4.2
-- **状态管理**: Pinia 2.1
-- **HTTP**: Axios 1.6
-- **图表**: ECharts 5.4
-- **构建**: Vite 5.0
-
-## 🎨 UI组件
-
-项目使用 Ant Design Vue，主要组件：
-
-- **布局**: Layout, Menu, Header, Sider, Content
-- **表格**: Table, ProTable
-- **表单**: Form, Input, Select, DatePicker
-- **反馈**: Message, Modal, Popconfirm
-- **数据展示**: Card, Tag, Statistic, Descriptions
-- **导航**: Menu, Breadcrumb
-- **其他**: Button, Space, Divider
-
-## 🔗 相关链接
-
-- [Vue 3 文档](https://cn.vuejs.org/)
-- [Ant Design Vue](https://antdv.com/)
-- [Vite 文档](https://cn.vitejs.dev/)
-- [TypeScript 文档](https://www.typescriptlang.org/)
-- [Pinia 文档](https://pinia.vuejs.org/zh/)
-- [Vue Router 文档](https://router.vuejs.org/zh/)
-
-## 📞 获取帮助
-
-如有问题，请查阅：
-1. `FRONTEND_IMPLEMENTATION.md` - 完整实现文档
-2. `../FINAL_PROJECT_REPORT.md` - 项目总报告
-3. `../QUICK_START.md` - 快速启动指南
-
----
-
-**开发愉快！** 🎉
+- 项目入口：[../README.md](../README.md)
+- 运行手册：[../docs/RUNBOOK.md](../docs/RUNBOOK.md)

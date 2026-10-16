@@ -28,7 +28,7 @@
 - **智能排序**：基于使用频率和购买日期的多级排序算法
 - **自动化闭环**：从消耗到补货的全自动化流程
 - **分离关注点**：卡片展示简要信息，详情页展示完整信息
-- **企业级UI**：使用 Ant Design Pro 提供专业、美观的用户界面
+- **企业级UI**：设计稿原计划使用 Ant Design Pro（**实际未按此实现**——落地为 ant-design-vue，非 Pro，见「前端设计」章节开头说明与 `frontend/`）
 
 ## 架构
 
@@ -99,7 +99,7 @@ public interface MedicineMapper extends BaseMapper<Medicine> {
     /**
      * 查询低库存药品
      */
-    @Select("SELECT * FROM medicines WHERE total_quantity < threshold AND status != 'expired'")
+    @Select("SELECT * FROM medicines WHERE total_quantity < threshold AND status != 'EXPIRED'")
     List<Medicine> findLowStock();
 }
 ```
@@ -137,7 +137,7 @@ public interface ShoppingListMapper extends BaseMapper<ShoppingListItem> {
     /**
      * 查询待购买的清单项
      */
-    @Select("SELECT * FROM shopping_list WHERE status = 'pending' ORDER BY added_at DESC")
+    @Select("SELECT * FROM shopping_list WHERE status = 'PENDING' ORDER BY added_at DESC")
     List<ShoppingListItem> findPending();
     
     /**
@@ -244,7 +244,7 @@ CREATE TABLE medicines (
   -- 基础信息
   name VARCHAR(255) NOT NULL,
   image_url VARCHAR(500),
-  dosage_form ENUM('tablet', 'capsule', 'granule', 'liquid', 'external', 'injection', 'other') NOT NULL,
+  dosage_form ENUM('TABLET', 'CAPSULE', 'GRANULE', 'LIQUID', 'EXTERNAL', 'INJECTION', 'OTHER') NOT NULL,
   storage_location VARCHAR(255),
   
   -- 库存相关
@@ -266,7 +266,7 @@ CREATE TABLE medicines (
   usage_frequency_score INT NOT NULL DEFAULT 0,
   
   -- 状态
-  status ENUM('normal', 'low_stock', 'expired', 'depleted') NOT NULL DEFAULT 'normal',
+  status ENUM('NORMAL', 'LOW_STOCK', 'EXPIRED', 'DEPLETED') NOT NULL DEFAULT 'NORMAL',
   
   -- 审计字段
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -329,9 +329,9 @@ CREATE TABLE usage_logs (
 CREATE TABLE shopping_list (
   id VARCHAR(36) PRIMARY KEY,
   medicine_id VARCHAR(36) NOT NULL,
-  reason ENUM('expired', 'depleted', 'manual') NOT NULL,
+  reason ENUM('EXPIRED', 'DEPLETED', 'MANUAL') NOT NULL,
   custom_note TEXT,
-  status ENUM('pending', 'purchased') NOT NULL DEFAULT 'pending',
+  status ENUM('PENDING', 'PURCHASED') NOT NULL DEFAULT 'PENDING',
   added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   purchased_at TIMESTAMP NULL,
   
@@ -641,13 +641,13 @@ public class InventoryServiceImpl implements InventoryService {
         }
         
         // 3. 创建用药记录
-        UsageLog log = new UsageLog();
-        log.setMedicineId(medicineId);
-        log.setUsageTime(LocalDateTime.now());
-        log.setAmount(amount);
-        log.setUserName(userName);
-        log.setSymptom(symptom);
-        usageLogMapper.insert(log);
+        UsageLog usageLog = new UsageLog();
+        usageLog.setMedicineId(medicineId);
+        usageLog.setUsageTime(LocalDateTime.now());
+        usageLog.setAmount(amount);
+        usageLog.setUserName(userName);
+        usageLog.setSymptom(symptom);
+        usageLogMapper.insert(usageLog);
         result.addEvent("usage_log_created");
         
         // 4. 扣减库存
@@ -829,6 +829,8 @@ public class InventoryServiceImpl implements InventoryService {
 ```
 
 ## 前端设计 (Ant Design Pro)
+
+> **⚠️ 实现说明（事实修正）**：本章为设计稿。**前端实际未按此实现**——未使用 Ant Design Pro，实际基于 `ant-design-vue`（非 Pro，见 `frontend/package.json`）；本章中的 ProTable / ProDescriptions / ProList / ProCard 及图表库（Charts）均未落地。**实际实现以 `frontend/` 为准**（页面见 `frontend/src/views/`）。
 
 ### 技术选型说明
 
@@ -1173,7 +1175,7 @@ interface MedicineVO {
   threshold: number
   symptomsTreated: string
   dosageInstruction: string
-  status: 'normal' | 'low_stock' | 'expired' | 'depleted'
+  status: 'NORMAL' | 'LOW_STOCK' | 'EXPIRED' | 'DEPLETED'
   storageLocation?: string
   expiryDate: string
   usageFrequencyScore: number
@@ -1192,9 +1194,9 @@ interface ShoppingListItemVO {
   id: string
   medicineId: string
   medicineName: string
-  reason: 'expired' | 'depleted' | 'manual'
+  reason: 'EXPIRED' | 'DEPLETED' | 'MANUAL'
   customNote?: string
-  status: 'pending' | 'purchased'
+  status: 'PENDING' | 'PURCHASED'
   addedAt: string
   medicine: {
     imageUrl?: string
