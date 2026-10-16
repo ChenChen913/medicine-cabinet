@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.family.medicinecabinet.mapper.MedicineMapper">
+    
+    <!-- 查询已过期的药品 -->
+    <select id="findExpired" resultType="com.family.medicinecabinet.entity.Medicine">
+        SELECT * FROM medicines
+        WHERE expiry_date &lt; #{currentDate}
+        AND status != 'EXPIRED'
+        ORDER BY expiry_date ASC
+    </select>
+    
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.family.medicinecabinet.mapper.UsageLogMapper">
+    
+    <!-- 根据药品ID查询用药记录 -->
+    <select id="findByMedicineId" resultType="com.family.medicinecabinet.entity.UsageLog">
+        SELECT * FROM usage_logs
+        WHERE medicine_id = #{medicineId}
+        ORDER BY usage_time DESC
+    </select>
+    
+    <!-- 根据时间范围查询用药记录 -->
+    <select id="findByDateRange" resultType="com.family.medicinecabinet.entity.UsageLog">
+        SELECT * FROM usage_logs
+        WHERE usage_time BETWEEN #{start} AND #{end}
+        ORDER BY usage_time DESC
+    </select>
+    
+    <!-- 根据用户查询用药记录 -->
+    <select id="findByUser" resultType="com.family.medicinecabinet.entity.UsageLog">
+        SELECT * FROM usage_logs
+        WHERE user_name = #{userName}
+        ORDER BY usage_time DESC
+    </select>
+    
+</mapper>

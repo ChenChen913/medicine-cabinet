@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>测试添加药品</title>
+</head>
+<body>
+    <h1>测试添加药品</h1>
+    <form id="medicineForm">
+        <label for="name">药品名称:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="unit">单位:</label>
+        <input type="text" id="unit" name="unit" required><br><br>
+        
+        <button type="submit">添加药品</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('medicineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const unit = document.getElementById('unit').value;
+            
+            const medicine = {
+                name: name,
+                unit: unit
+            };
+            
+            fetch('http://localhost:8080/api/medicines', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(medicine)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = '<p style="color: red;">错误: ' + error + '</p>';
+            });
+        });
+    </script>
+</body>
+</html>

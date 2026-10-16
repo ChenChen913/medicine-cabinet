@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.family.medicinecabinet.mapper.ShoppingListMapper">
+    
+    <!-- 根据药品ID和原因查询清单项 -->
+    <select id="findByMedicineAndReason" resultType="com.family.medicinecabinet.entity.ShoppingListItem">
+        SELECT * FROM shopping_list
+        WHERE medicine_id = #{medicineId}
+        AND reason = #{reason}
+        AND status = 'PENDING'
+        LIMIT 1
+    </select>
+    
+</mapper>
