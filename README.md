@@ -114,7 +114,8 @@ start-frontend.bat          # 或手动：cd frontend && npm install && npm run 
 
 **药品 `/medicines`（MedicineController）**
 
-- `GET /medicines?current=1&size=10&name=` — 分页查询（名称模糊搜索可选）
+- `GET /medicines?current=1&size=10&name=&expiryStatus=` — 分页查询（名称模糊搜索、有效期状态筛选均可选）
+  - `expiryStatus`：`EXPIRED`（有效期 < 今天）/ `EXPIRING_SOON`（今天 ~ 今天+30 天，含两端）/ `VALID`（有效期 > 今天+30 天）；三态互斥，不传即全部；非法值返回 `body.code=400`
 - `GET /medicines/{id}` — 详情
 - `POST /medicines` — 创建
 - `PUT /medicines/{id}` — 更新

@@ -7,10 +7,15 @@ export type MedicineSortField = 'name' | 'totalQuantity' | 'expiryDate' | 'creat
 // 排序方向枚举（仅小写 asc/desc，见 agreed-E2.md 第 1 条）
 export type MedicineSortOrder = 'asc' | 'desc'
 
+// 有效期筛选三态（与后端 ExpiryStatusFilter 逐字一致，区分大小写）
+// EXPIRED: 有效期 < 今天；EXPIRING_SOON: 今天 ~ 今天+30 天（含两端）；VALID: 有效期 > 今天+30 天
+export type MedicineExpiryStatus = 'EXPIRED' | 'EXPIRING_SOON' | 'VALID'
+
 export interface MedicineListParams {
   current: number
   size: number
   name?: string
+  expiryStatus?: MedicineExpiryStatus
   sortBy?: MedicineSortField
   sortOrder?: MedicineSortOrder
 }

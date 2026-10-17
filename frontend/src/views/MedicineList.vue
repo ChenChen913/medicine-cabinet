@@ -3,6 +3,16 @@
     <a-card title="药品列表" :bordered="false">
       <template #extra>
         <a-space>
+          <a-select
+            v-model:value="expiryFilter"
+            style="width: 170px"
+            @change="handleExpiryFilterChange"
+          >
+            <a-select-option value="">全部药品</a-select-option>
+            <a-select-option value="EXPIRED">已过期</a-select-option>
+            <a-select-option value="EXPIRING_SOON">即将过期（30 天内）</a-select-option>
+            <a-select-option value="VALID">未过期</a-select-option>
+          </a-select>
           <a-input-search
             v-model:value="searchName"
             placeholder="搜索药品名称"
@@ -132,13 +142,15 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import type { TableColumnsType, TableProps } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { medicineApi, type MedicineListParams } from '@/api/medicine'
+import { medicineApi, type MedicineExpiryStatus, type MedicineListParams } from '@/api/medicine'
 import { DosageForm, type Medicine } from '@/types'
 import { getDosageFormText } from '@/utils/dict'
 
 const loading = ref(false)
 const medicines = ref<Medicine[]>([])
 const searchName = ref('')
+// 有效期筛选：'' = 全部药品（不传参数），其余为后端三态枚举
+const expiryFilter = ref<MedicineExpiryStatus | ''>('')
 const pagination = reactive({
   current: 1,
   pageSize: 10,
@@ -211,6 +223,10 @@ const buildQuery = (): MedicineListParams => {
   if (searchName.value) {
     query.name = searchName.value
   }
+  if (expiryFilter.value) {
+    // 仅在选择了具体三态时下发；''（全部药品）不传该参数
+    query.expiryStatus = expiryFilter.value
+  }
   if (sortState.value) {
     query.sortBy = SORT_FIELD_MAP[sortState.value.columnKey]
     query.sortOrder = sortState.value.order === 'ascend' ? 'asc' : 'desc'
@@ -242,6 +258,12 @@ const loadData = async (allowPageFix = true): Promise<boolean> => {
 
 // 搜索时重置到第一页再查询（保留当前排序：排序是查询条件的一部分）
 const handleSearch = () => {
+  pagination.current = 1
+  loadData()
+}
+
+// 切换有效期筛选同样回到第一页（筛选是查询条件的一部分，保留当前排序）
+const handleExpiryFilterChange = () => {
   pagination.current = 1
   loadData()
 }
@@ -413,7 +435,7 @@ const handleTableChange: TableChange = (pag, _filters, sorter) => {
     applySortChange(nextSort)
     return
   }
-  // 本次是分页变化（本项目无筛选列）：保留排序条件，仅更新页码/页大小
+  // 本次是分页变化（表格无筛选列，有效期筛选走卡片右上角下拉）：保留排序与筛选条件，仅更新页码/页大小
   pagination.current = pag.current ?? 1
   pagination.pageSize = pag.pageSize ?? pagination.pageSize
   loadData()

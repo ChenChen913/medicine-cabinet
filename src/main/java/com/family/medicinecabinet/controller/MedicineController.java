@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.family.medicinecabinet.common.Result;
 import com.family.medicinecabinet.entity.Medicine;
 import com.family.medicinecabinet.entity.enums.DosageForm;
+import com.family.medicinecabinet.entity.enums.ExpiryStatusFilter;
 import com.family.medicinecabinet.entity.enums.MedicineStatus;
 import com.family.medicinecabinet.exception.MedicineException;
 import com.family.medicinecabinet.exception.MedicineNotFoundException;
@@ -48,6 +49,10 @@ public class MedicineController {
      * <p>排序参数（sortBy / sortOrder）与 size 上限 100 为与前端协商确定（见 agreed-E1.md 编号 1-4、8）：
      * 不传 sortBy 时无 ORDER BY 且忽略 sortOrder；sortBy 单独传默认 asc；
      * 非法值（含空串）返回 body.code=400，不静默回落。</p>
+     *
+     * <p>有效期筛选参数（expiryStatus）按 {@link ExpiryStatusFilter} 的三态边界在查询时现算：
+     * 已过期（早于今天）/ 即将过期（今天至今天+30 天）/ 未过期（超过今天+30 天），
+     * 不依赖每日任务写入的 status 列，因此不会因任务尚未执行而漏筛。非法值同样返回 body.code=400。</p>
      */
     @GetMapping
     public Result<Page<Medicine>> list(
@@ -56,6 +61,7 @@ public class MedicineController {
             @Min(value = 1, message = "必须在 1-100 之间")
             @Max(value = 100, message = "必须在 1-100 之间") int size,
             @RequestParam(required = false) String name,
+            @RequestParam(required = false) String expiryStatus,
             @RequestParam(required = false) String sortBy,
             @RequestParam(required = false) String sortOrder
     ) {
@@ -66,10 +72,29 @@ public class MedicineController {
             wrapper.like(Medicine::getName, name);
         }
 
+        applyExpiryFilter(wrapper, expiryStatus);
+
         applySorting(wrapper, sortBy, sortOrder);
 
         medicineMapper.selectPage(page, wrapper);
         return Result.success(page);
+    }
+
+    /**
+     * 应用有效期状态筛选（见 {@link ExpiryStatusFilter}）。
+     *
+     * @param wrapper      查询包装器
+     * @param expiryStatus 筛选态：EXPIRED / EXPIRING_SOON / VALID；null 表示不筛选
+     */
+    private void applyExpiryFilter(LambdaQueryWrapper<Medicine> wrapper, String expiryStatus) {
+        if (expiryStatus == null) {
+            return;
+        }
+        try {
+            ExpiryStatusFilter.fromString(expiryStatus).applyTo(wrapper, LocalDate.now());
+        } catch (IllegalArgumentException e) {
+            throw new MedicineException(400, e.getMessage());
+        }
     }
 
     /**
