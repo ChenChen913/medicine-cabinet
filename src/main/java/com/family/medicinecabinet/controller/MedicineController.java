@@ -1,16 +1,20 @@
 package com.family.medicinecabinet.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.family.medicinecabinet.common.Result;
 import com.family.medicinecabinet.entity.Medicine;
 import com.family.medicinecabinet.entity.enums.DosageForm;
 import com.family.medicinecabinet.entity.enums.MedicineStatus;
+import com.family.medicinecabinet.exception.MedicineException;
 import com.family.medicinecabinet.exception.MedicineNotFoundException;
 import com.family.medicinecabinet.mapper.MedicineMapper;
 import com.family.medicinecabinet.service.InventoryService;
 import com.family.medicinecabinet.service.dto.ConsumeResult;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +44,20 @@ public class MedicineController {
 
     /**
      * 分页查询药品列表
+     *
+     * <p>排序参数（sortBy / sortOrder）与 size 上限 100 为与前端协商确定（见 agreed-E1.md 编号 1-4、8）：
+     * 不传 sortBy 时无 ORDER BY 且忽略 sortOrder；sortBy 单独传默认 asc；
+     * 非法值（含空串）返回 body.code=400，不静默回落。</p>
      */
     @GetMapping
     public Result<Page<Medicine>> list(
             @RequestParam(defaultValue = "1") int current,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String name
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "必须在 1-100 之间")
+            @Max(value = 100, message = "必须在 1-100 之间") int size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortOrder
     ) {
         Page<Medicine> page = new Page<>(current, size);
         LambdaQueryWrapper<Medicine> wrapper = new LambdaQueryWrapper<>();
@@ -54,8 +66,47 @@ public class MedicineController {
             wrapper.like(Medicine::getName, name);
         }
 
+        applySorting(wrapper, sortBy, sortOrder);
+
         medicineMapper.selectPage(page, wrapper);
         return Result.success(page);
+    }
+
+    /**
+     * 应用协商确定的排序规则（agreed-E1.md 编号 1、2、3、8）。
+     *
+     * @param wrapper   查询包装器
+     * @param sortBy    排序字段：name / totalQuantity / expiryDate / createdAt（区分大小写，出现即校验）
+     * @param sortOrder 排序方向：asc / desc（小写），缺省 asc
+     */
+    private void applySorting(LambdaQueryWrapper<Medicine> wrapper, String sortBy, String sortOrder) {
+        if (sortBy == null) {
+            // 编号 2：不传 sortBy → 无 ORDER BY；此时 sortOrder 无论传什么都不生效
+            return;
+        }
+
+        SFunction<Medicine, ?> column = switch (sortBy) {
+            case "name" -> Medicine::getName;
+            case "totalQuantity" -> Medicine::getTotalQuantity;
+            case "expiryDate" -> Medicine::getExpiryDate;
+            case "createdAt" -> Medicine::getCreatedAt;
+            default -> throw new MedicineException(400,
+                    "不支持的排序字段: " + sortBy + "，可选值: name/totalQuantity/expiryDate/createdAt");
+        };
+
+        boolean asc;
+        if (sortOrder == null || "asc".equals(sortOrder)) {
+            asc = true;
+        } else if ("desc".equals(sortOrder)) {
+            asc = false;
+        } else {
+            throw new MedicineException(400,
+                    "不支持的排序方向: " + sortOrder + "，可选值: asc/desc");
+        }
+
+        wrapper.orderBy(true, asc, column);
+        // 编号 8：并列值附加 id ASC 次级键，保证分页稳定（不跨页重复/丢失）
+        wrapper.orderByAsc(Medicine::getId);
     }
 
     /**
